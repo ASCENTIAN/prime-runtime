@@ -1,0 +1,10 @@
+PrimeRuntime
+Copyright 2026 Doron Tal
+
+This product includes the PrimeRuntime (launcher, kernel and client sandbox scripts) and its documentation, licensed under the Apache License, Version 2.0. See the LICENSE file.
+
+Third-party software:
+The release binary is built from third-party Rust crates. Each crate is distributed under its own license. Their license texts are included in the package under licenses/ and in LICENSES-dependencies.txt, and the software bill of materials (SBOM.cdx.json) is published with the release. See docs/LICENSES.md.
+
+Scope of this notice:
+This notice applies only to the PrimeRuntime and documentation named above. It does not claim any right over, and does not license, any capability content, skill text, data, snapshot or derived material, and no such content is included in this release.
