@@ -1,0 +1,61 @@
+# PrimeRuntime public repository: verify a published release asset. Runs when a release is published
+# or manually with a tag. Checks the archive .sha256, the inner SHA256SUMS, then runs bin/prt.
+name: Verify PrimeRuntime release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to verify, for example primeruntime-v0.1.0"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      VERSION: "0.1.0"
+      ASSET: primeruntime-v0.1.0-x86_64-unknown-linux-gnu.tar.gz
+      ROOT: primeruntime-v0.1.0-x86_64-unknown-linux-gnu
+    steps:
+      - name: Refuse a tag that does not name this version
+        run: |
+          set -eu
+          [ "$TAG" = "primeruntime-v$VERSION" ] || { echo "tag $TAG does not match primeruntime-v$VERSION" >&2; exit 1; }
+
+      - name: Download the release asset and its checksum
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/verify"
+          cd "$RUNNER_TEMP/verify"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$ASSET" --pattern "$ASSET.sha256"
+
+      - name: Verify the archive checksum
+        run: |
+          set -eu
+          cd "$RUNNER_TEMP/verify"
+          sha256sum -c "$ASSET.sha256"
+
+      - name: Extract and verify the inner checksums
+        run: |
+          set -eu
+          cd "$RUNNER_TEMP/verify"
+          tar -xzf "$ASSET"
+          cd "$ROOT"
+          sha256sum -c SHA256SUMS
+
+      - name: Run the version and health commands
+        run: |
+          set -eu
+          cd "$RUNNER_TEMP/verify/$ROOT"
+          ./bin/prt version
+          ./bin/prt health
